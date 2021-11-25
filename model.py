@@ -1,3 +1,4 @@
+from re import T
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Sequential, Model, load_model, save_model
@@ -37,21 +38,21 @@ def save_imgs(epoch):
             axs[i,j].axis('off')
             cnt+=1
     fig.savefig("C:/Users/Nikola Kojadinovic/digital-art-gan/training_out")
-    plt.close
+    plt.close()
     
     
 def build_generator():
     
     model = Sequential()
     
-    model.add(Dense(32, input_shape = NOISE_SHAPE))
-    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Dense(2, input_shape = NOISE_SHAPE))
+    # model.add(LeakyReLU(alpha = 0.2))
     model.add(BatchNormalization(momentum=0.8))
-    model.add(Dense(64))
-    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Dense(4))
+    # model.add(LeakyReLU(alpha = 0.2))
     model.add(BatchNormalization(momentum=0.8))
-    model.add(Dense(128))
-    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Dense(8))
+    # model.add(LeakyReLU(alpha = 0.2))
     model.add(BatchNormalization(momentum=0.8))
     
     model.add(Dense(np.prod(IMG_SHAPE), activation = 'tanh'))
@@ -71,11 +72,11 @@ def build_discriminator():
     model = Sequential()
     
     model.add(Flatten(input_shape = IMG_SHAPE))
-    model.add(Dense(64))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dense(32))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Dense(1, activation = 'sigmoid'))
+    model.add(Dense(8))
+    # model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(4))
+    # model.add(LeakyReLU(alpha = 0.2))
+    model.add(Dense(2, activation = 'sigmoid'))
     model.summary()
     
     img = Input(shape = IMG_SHAPE)
@@ -84,10 +85,11 @@ def build_discriminator():
     return Model(img, validity)
 
 def train(epochs, batch_size, save_interval=500):
-    
+    #loadovanje slika mora da se implementira kako treba
     datagen = ImageDataGenerator()
-    X_train = datagen.flow_from_directory("images_small")
-    print()
+    X_train = datagen.flow_from_directory("images_small",
+                                          shuffle=True,
+                                          batch_size = BATCH_SIZE)
     
     half_batch = BATCH_SIZE // 2
     
@@ -95,7 +97,9 @@ def train(epochs, batch_size, save_interval=500):
     
         #training a discriminator
         idx = np.random.randint(0,14, half_batch)
-        imgs = X_train[idx]
+        imgs= X_train.next()
+        print(imgs)
+        imgs = imgs[idx]
         noise = np.random.normal(0,1, (half_batch,20))
         gen_imgs = generator.predict(noise)
         
